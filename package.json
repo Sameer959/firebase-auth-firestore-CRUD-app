@@ -1,11 +1,11 @@
 {
-  "name": "crud-app",
+  "name": "firestore",
   "version": "3.3.0",
   "private": true,
-  "homepage": "https://safdarjamal.github.io/crud-app/",
+  "homepage": "https://github.com/Sameer959/firebase-auth-firestore-CRUD-app",
   "author": {
     "name": "Safdar Jamal",
-    "url": "https://safdarjamal.github.io"
+    "url": "https://github.com/Sameer959"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
