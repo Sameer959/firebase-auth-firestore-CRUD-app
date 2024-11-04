@@ -1,110 +1,107 @@
-import React, { useState } from 'react';
-import Swal from 'sweetalert2';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useDispatch } from 'react-redux';
+import { updateEmployeeAsync } from './employeeSlice'; 
 
-import { doc, setDoc } from "firebase/firestore"; 
-import { db } from '../../config/firestore'
+const Edit = ({ selectedEmployee, setIsEditing }) => {
+  const dispatch = useDispatch();
 
-const Edit = ({ employees, selectedEmployee, setEmployees, setIsEditing, getEmployees }) => {
-  const id = selectedEmployee.id;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    defaultValues: selectedEmployee,
+  });
 
-  const [firstName, setFirstName] = useState(selectedEmployee.firstName);
-  const [lastName, setLastName] = useState(selectedEmployee.lastName);
-  const [email, setEmail] = useState(selectedEmployee.email);
-  const [salary, setSalary] = useState(selectedEmployee.salary);
-  const [date, setDate] = useState(selectedEmployee.date);
+  useEffect(() => {
+    reset(selectedEmployee);
+  }, [selectedEmployee, reset]);
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-
-    if (!firstName || !lastName || !email || !salary || !date) {
-      return Swal.fire({
-        icon: 'error',
-        title: 'Error!',
-        text: 'All fields are required.',
-        showConfirmButton: true,
+  const onSubmit = (data) => {
+    dispatch(updateEmployeeAsync(data))
+      .then(() => {
+        setIsEditing(false); 
+        reset(); 
+      })
+      .catch((error) => {
+        console.error(error);
       });
-    }
-
-    const employee = {
-      id,
-      firstName,
-      lastName,
-      email,
-      salary,
-      date,
-    };
-
-    await setDoc(doc(db, "employees", id), {
-      ...employee
-    });
-
-    setEmployees(employees);
-    setIsEditing(false);
-    getEmployees()
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Updated!',
-      text: `${employee.firstName} ${employee.lastName}'s data has been updated.`,
-      showConfirmButton: false,
-      timer: 1500,
-    });
   };
 
   return (
-    <div className="small-container">
-      <form onSubmit={handleUpdate}>
-        <h1>Edit Employee</h1>
-        <label htmlFor="firstName">First Name</label>
-        <input
-          id="firstName"
-          type="text"
-          name="firstName"
-          value={firstName}
-          onChange={e => setFirstName(e.target.value)}
-        />
-        <label htmlFor="lastName">Last Name</label>
-        <input
-          id="lastName"
-          type="text"
-          name="lastName"
-          value={lastName}
-          onChange={e => setLastName(e.target.value)}
-        />
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-        <label htmlFor="salary">Salary ($)</label>
-        <input
-          id="salary"
-          type="number"
-          name="salary"
-          value={salary}
-          onChange={e => setSalary(e.target.value)}
-        />
-        <label htmlFor="date">Date</label>
-        <input
-          id="date"
-          type="date"
-          name="date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-        />
-        <div style={{ marginTop: '30px' }}>
-          <input type="submit" value="Update" />
+    <div className="edit-form">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <h2>Edit Employee</h2>
+
+        <div className="form-group">
+          <label>First Name</label>
           <input
-            style={{ marginLeft: '12px' }}
-            className="muted-button"
-            type="button"
-            value="Cancel"
-            onClick={() => setIsEditing(false)}
+            type="text"
+            {...register('firstName', { required: 'First name is required' })}
           />
+          {errors.firstName && <p className="error">{errors.firstName.message}</p>}
         </div>
+
+        <div className="form-group">
+          <label>Last Name</label>
+          <input
+            type="text"
+            {...register('lastName', { required: 'Last name is required' })}
+          />
+          {errors.lastName && <p className="error">{errors.lastName.message}</p>}
+        </div>
+
+        <div className="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            {...register('email', {
+              required: 'Email is required',
+              pattern: {
+                value: /^\S+@\S+$/i,
+                message: 'Invalid email address',
+              },
+            })}
+          />
+          {errors.email && <p className="error">{errors.email.message}</p>}
+        </div>
+
+        <div className="form-group">
+          <label>Salary</label>
+          <input
+            type="number"
+            {...register('salary', {
+              required: 'Salary is required',
+              min: {
+                value: 0,
+                message: 'Salary must be a positive number',
+              },
+            })}
+          />
+          {errors.salary && <p className="error">{errors.salary.message}</p>}
+        </div>
+
+        <div className="form-group">
+          <label>Date of Joining</label>
+          <input
+            type="date"
+            {...register('date', { required: 'Date of joining is required' })}
+          />
+          {errors.date && <p className="error">{errors.date.message}</p>}
+        </div>
+
+        <button type="submit" className="btn btn-success">
+          Update Employee
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => setIsEditing(false)}
+        >
+          Cancel
+        </button>
       </form>
     </div>
   );

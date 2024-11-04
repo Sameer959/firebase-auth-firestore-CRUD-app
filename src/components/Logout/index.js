@@ -1,47 +1,35 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import Swal from 'sweetalert2';
+import { logoutAsync } from '../../components/Login/authSlice'; // Use async thunk
 
-import { getAuth, signOut } from "firebase/auth";
-
-const Logout = ({ setIsAuthenticated }) => {
+const Logout = () => {
+  const dispatch = useDispatch();
 
   const handleLogout = () => {
-    const auth = getAuth();
-    signOut(auth).then(() => {
-      Swal.fire({
-        icon: 'question',
-        title: 'Logging Out',
-        text: 'Are you sure you want to log out?',
-        showCancelButton: true,
-        confirmButtonText: 'Yes',
-      }).then(result => {
-        if (result.value) {
-          Swal.fire({
-            timer: 1500,
-            showConfirmButton: false,
-            willOpen: () => {
-              Swal.showLoading();
-            },
-            willClose: () => {
-              setIsAuthenticated(false);
-            },
+    Swal.fire({
+      title: 'Logging Out',
+      text: 'Are you sure you want to log out?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(logoutAsync())
+          .unwrap()
+          .catch((error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: error,
+              showConfirmButton: true,
+            });
           });
-        }
-      });
-    }).catch((error) => {
-      console.log(error)
+      }
     });
   };
 
-  return (
-    <button
-      style={{ marginLeft: '12px' }}
-      className="muted-button"
-      onClick={handleLogout}
-    >
-      Logout
-    </button>
-  );
+  return <button onClick={handleLogout}>Logout</button>;
 };
 
 export default Logout;

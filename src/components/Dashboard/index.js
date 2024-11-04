@@ -1,38 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect,useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Swal from 'sweetalert2';
-
 import Header from './Header';
 import Table from './Table';
 import Add from './Add';
 import Edit from './Edit';
-
-import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
-import { db } from '../../config/firestore'
+import { fetchEmployeesAsync, deleteEmployeeAsync } from './employeeSlice'; 
 
 const Dashboard = ({ setIsAuthenticated }) => {
-  const [employees, setEmployees] = useState();
+  const dispatch = useDispatch();
+  const employees = useSelector((state) => state.employees.employees);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const getEmployees = async () => {
-    const querySnapshot = await getDocs(collection(db, "employees"));
-    const employees = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
-    setEmployees(employees)
-  }
-
   useEffect(() => {
-    getEmployees()
-  }, []);
+    dispatch(fetchEmployeesAsync());
+  }, [dispatch]);
 
-  const handleEdit = id => {
-    const [employee] = employees.filter(employee => employee.id === id);
-
+  const handleEdit = (id) => {
+    const [employee] = employees.filter((employee) => employee.id === id);
     setSelectedEmployee(employee);
     setIsEditing(true);
   };
 
-  const handleDelete = id => {
+  const handleDelete = (id) => {
     Swal.fire({
       icon: 'warning',
       title: 'Are you sure?',
@@ -40,22 +32,9 @@ const Dashboard = ({ setIsAuthenticated }) => {
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, cancel!',
-    }).then(result => {
+    }).then((result) => {
       if (result.value) {
-        const [employee] = employees.filter(employee => employee.id === id);
-
-        deleteDoc(doc(db, "employees", id));
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: `${employee.firstName} ${employee.lastName}'s data has been deleted.`,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-
-        const employeesCopy = employees.filter(employee => employee.id !== id);
-        setEmployees(employeesCopy);
+        dispatch(deleteEmployeeAsync(id));
       }
     });
   };
@@ -64,32 +43,19 @@ const Dashboard = ({ setIsAuthenticated }) => {
     <div className="container">
       {!isAdding && !isEditing && (
         <>
-          <Header
-            setIsAdding={setIsAdding}
-            setIsAuthenticated={setIsAuthenticated}
-          />
-          <Table
-            employees={employees}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
-          />
+          <Header setIsAdding={setIsAdding} setIsAuthenticated={setIsAuthenticated} />
+          <Table employees={employees} handleEdit={handleEdit} handleDelete={handleDelete} />
         </>
       )}
       {isAdding && (
         <Add
-          employees={employees}
-          setEmployees={setEmployees}
           setIsAdding={setIsAdding}
-          getEmployees={getEmployees}
         />
       )}
       {isEditing && (
         <Edit
-          employees={employees}
           selectedEmployee={selectedEmployee}
-          setEmployees={setEmployees}
           setIsEditing={setIsEditing}
-          getEmployees={getEmployees}
         />
       )}
     </div>

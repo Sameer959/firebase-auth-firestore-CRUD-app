@@ -1,109 +1,85 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
+import {Container, TextField, Button, Typography, Box} from '@mui/material'; 
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { loginAsync, registerAsync } from '../../components/Login/authSlice'; 
 
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();  
+  const dispatch = useDispatch(); 
 
-const Login = ({ setIsAuthenticated }) => {
-
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
-
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-
-    const auth = getAuth();
-
-    if (document.activeElement.name === 'Login') {
-      try {
-        await signInWithEmailAndPassword(auth, email, password)
+    dispatch(loginAsync({ email, password }))
+      .unwrap()
+      .then(() => navigate('/dashboard'))
+      .catch((error) => {
         Swal.fire({
-          timer: 1500,
-          showConfirmButton: false,
-          willOpen: () => {
-            Swal.showLoading();
-          },
-          willClose: () => {
-            setIsAuthenticated(true);
-  
-            Swal.fire({
-              icon: 'success',
-              title: 'Successfully logged in!',
-              showConfirmButton: false,
-              timer: 1500,
-            });
-          },
+          icon: 'error',
+          title: 'Error!',
+          text: error,
+          showConfirmButton: true,
         });
-      } catch (error) {
-        Swal.fire({
-          timer: 1500,
-          showConfirmButton: false,
-          willOpen: () => {
-            Swal.showLoading();
-          },
-          willClose: () => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: 'Incorrect email or password.',
-              showConfirmButton: true,
-            });
-          },
-        });
-      }
-    } else if (document.activeElement.name === 'Register') {
-      try {
-        await createUserWithEmailAndPassword(auth, email, password)
-        Swal.fire({
-          timer: 1500,
-          showConfirmButton: false,
-          willOpen: () => {
-            Swal.showLoading();
-          },
-          willClose: () => {
-            setIsAuthenticated(true);
-  
-            Swal.fire({
-              icon: 'success',
-              title: 'Successfully registered and logged in!',
-              showConfirmButton: false,
-              timer: 1500,
-            });
-          },
-        });
-      } catch (error) {
-        console.log(error)
-      }
-    }
+      });
+  };
 
-    
+  const handleRegister = (e) => {
+    e.preventDefault();
+    dispatch(registerAsync({ email, password }))
+      .unwrap()
+      .then(() => navigate('/dashboard'))
+      .catch((error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error,
+          showConfirmButton: true,
+        });
+      });
   };
 
   return (
-    <div className="small-container">
-      <form onSubmit={handleLogin}>
-        <h1>Admin Login</h1>
-        <label htmlFor="email">Email</label>
-        <input
+    <Container maxWidth="xs">
+      <Box component="form" sx={{ mt: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Login & Registration
+        </Typography>
+        <TextField
+          fullWidth
+          margin="normal"
           id="email"
           type="email"
           name="email"
-          placeholder="admin@example.com"
+          label="Email"
+          variant="outlined"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
         />
-        <label htmlFor="password">Password</label>
-        <input
+        <TextField
+          fullWidth
+          margin="normal"
           id="password"
           type="password"
           name="password"
-          placeholder="qwerty"
+          label="Password"
+          variant="outlined"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
-        <input style={{ marginTop: '12px' }} type="submit" value="Login" name="Login" />
-        <input style={{ marginTop: '12px', marginLeft: '12px', backgroundColor: 'black' }} type="submit" value="Register" name="Register" />
-      </form>
-    </div>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+          <Button variant="contained" color="primary" type="submit" name="Login" onClick={handleLogin}>
+            Login
+          </Button>
+          <Button variant="outlined" color="secondary" type="submit" name="Register" onClick={handleRegister}>
+            Register
+          </Button>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

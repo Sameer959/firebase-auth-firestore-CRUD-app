@@ -1,7 +1,16 @@
 import React from 'react';
+import {
+  Table as MuiTable,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  Paper,
+} from '@mui/material';
 
 const Table = ({ employees, handleEdit, handleDelete }) => {
-
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -9,57 +18,63 @@ const Table = ({ employees, handleEdit, handleDelete }) => {
   });
 
   return (
-    <div className="contain-table">
-      <table className="striped-table">
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email</th>
-            <th>Salary</th>
-            <th>Date</th>
-            <th colSpan={2} className="text-center">
+    <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+      <MuiTable>
+        <TableHead>
+          <TableRow>
+            <TableCell>Id</TableCell>
+            <TableCell>First Name</TableCell>
+            <TableCell>Last Name</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>Salary</TableCell>
+            <TableCell>Date</TableCell>
+            <TableCell colSpan={2} align="center">
               Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees ? (
-            employees.map((employee, i) => (
-              <tr key={employee.id}>
-                <td>{employee.id}</td>
-                <td>{employee.firstName}</td>
-                <td>{employee.lastName}</td>
-                <td>{employee.email}</td>
-                <td>{formatter.format(employee.salary)}</td>
-                <td>{employee.date} </td>
-                <td className="text-right">
-                  <button
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {employees && employees.length > 0 ? (
+            employees.map((employee) => (
+              <TableRow key={employee.id}>
+                <TableCell>{employee.id}</TableCell>
+                <TableCell>{employee.firstName}</TableCell>
+                <TableCell>{employee.lastName}</TableCell>
+                <TableCell>{employee.email}</TableCell>
+                <TableCell>{formatter.format(employee.salary)}</TableCell>
+                <TableCell>{employee.date}</TableCell>
+                <TableCell align="right">
+                  <Button
+                    variant="outlined"
+                    color="primary"
                     onClick={() => handleEdit(employee.id)}
-                    className="button muted-button"
+                    size="small"
                   >
                     Edit
-                  </button>
-                </td>
-                <td className="text-left">
-                  <button
+                  </Button>
+                </TableCell>
+                <TableCell align="left">
+                  <Button
+                    variant="outlined"
+                    color="secondary"
                     onClick={() => handleDelete(employee.id)}
-                    className="button muted-button"
+                    size="small"
                   >
                     Delete
-                  </button>
-                </td>
-              </tr>
+                  </Button>
+                </TableCell>
+              </TableRow>
             ))
           ) : (
-            <tr>
-              <td colSpan={7}></td>
-            </tr>
+            <TableRow>
+              <TableCell colSpan={8} align="center">
+                No employees found.
+              </TableCell>
+            </TableRow>
           )}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </MuiTable>
+    </TableContainer>
   );
 };
 
